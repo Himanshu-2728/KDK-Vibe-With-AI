@@ -30,7 +30,13 @@ export function CategoryChip({
   return (
     <span
       className="chip"
-      style={{ background: `${color}1f`, color }}
+      style={{
+        background: `${color}1f`,
+        // Blend the category color toward the theme text color so chips stay
+        // readable in both light and dark mode (raw DB colors are too dim on
+        // dark surfaces).
+        color: `color-mix(in srgb, ${color} 62%, var(--text))`,
+      }}
     >
       <span style={{ fontSize: 13 }}>{icon}</span>
       {name}

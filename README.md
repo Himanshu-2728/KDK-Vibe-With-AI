@@ -29,22 +29,22 @@ To reset to a pristine demo story: stop the servers and delete `server/data`, th
 | Account | Role | What you'll see |
 |---|---|---|
 | `aisha@example.com` | Citizen | A reported issue merged with 4 neighbors, now **CRITICAL** and trending |
-| `tom@city.gov` | Authority | The admin command center: stats, heatmap, queue, analytics |
+| `rahul@city.gov` | Authority | The admin command center: stats, heatmap, queue, analytics |
 
 The auth page has one-tap buttons for both. You can also sign up your own citizen account.
 
 ### The demo story in one minute
 
-1. Open the feed — **“Deep pothole on Oak St”** is trending with 52 upvotes, shows
+1. Open the feed — **“Deep pothole on Great Nag Rd”** is trending with 52 upvotes, shows
    *“4 other people reported this too”*, and carries a **CRITICAL** priority badge.
 2. Open it — see the transparent priority breakdown (severity + popularity + safety +
    location − age), the full status timeline, and the discussion.
 3. Tap **+** to report your own issue: snap/upload a photo, use your location (or pick
-   “Oak St, Riverside”), describe it, submit.
+   “Great Nag Rd, Nandanvan”), describe it, submit.
 4. The **AI step** suggests a type and severity with confidence — confirm, or correct it.
 5. If you report near the pothole, CivicPulse says *“this looks like an existing report —
    add your upvote instead?”* and merges you in (watch `reportCount` and priority climb).
-6. Log in as **Tom** (authority) → **Command center**: verify the report, assign a
+6. Log in as **Rahul** (authority) → **Command center**: verify the report, assign a
    department, mark it in progress, then **resolve** with an after-photo.
 7. Back as Aisha: a notification arrives, open the issue and **confirm the fix** —
    status flips to Confirmed and the dashboard's resolved count ticks up.

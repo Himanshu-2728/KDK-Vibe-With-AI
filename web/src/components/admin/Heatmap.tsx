@@ -94,7 +94,7 @@ export function Heatmap({ cells, onPick }: Props) {
 
       {/* Neighborhood nameplate */}
       <text x={W * 0.5} y={H - 10} textAnchor="middle" fontSize="12" fontWeight="800" fill="var(--text-3)" opacity="0.85">
-        Mapleton demo city — unresolved issues
+        Nagpur demo city — unresolved issues
       </text>
 
       {/* Area heat blobs + labels (click to drill in) */}

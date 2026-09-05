@@ -9,6 +9,7 @@ import issueRoutes from "./routes/issues.js";
 import reportRoutes from "./routes/reports.js";
 import meRoutes from "./routes/me.js";
 import notificationRoutes from "./routes/notifications.js";
+import geoRoutes from "./routes/geo.js";
 import adminRoutes from "./routes/admin.js";
 
 export function createApp(): express.Express {
@@ -28,6 +29,7 @@ export function createApp(): express.Express {
   app.use("/api/reports", reportRoutes);
   app.use("/api/me", meRoutes);
   app.use("/api/notifications", notificationRoutes);
+  app.use("/api/geo", geoRoutes);
   app.use("/api/admin", adminRoutes);
 
   app.use("/api", (_req, res) => {

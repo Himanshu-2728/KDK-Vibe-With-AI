@@ -5,19 +5,23 @@ export interface AreaPreset {
   lng: number;
 }
 
-/** Seed areas align with the demo dataset so duplicates can be exercised. */
+/**
+ * Real Nagpur streets/localities (coordinates from the Photon map API). Seed
+ * areas align with this dataset so duplicates can be exercised: the flagship
+ * pothole sits exactly on “Great Nag Rd, Nandanvan”.
+ */
 export const AREA_PRESETS: AreaPreset[] = [
-  { label: "Oak St, Riverside", description: "Near Riverside school", lat: 40.7135, lng: -74.0032 },
-  { label: "Elm Ave, Riverside", description: "Residential block", lat: 40.7148, lng: -74.0075 },
-  { label: "Maple Dr, Westbrook", description: "By the shops", lat: 40.7112, lng: -74.009 },
-  { label: "Highland Rd, Westbrook", description: "Hill road", lat: 40.7095, lng: -74.011 },
-  { label: "Riverside Bridge", description: "Pedestrian crossing", lat: 40.7155, lng: -74.0045 },
-  { label: "Riverside Park", description: "Main entrance", lat: 40.717, lng: -74.002 },
-  { label: "Mill Rd, Old Mill", description: "Old factory district", lat: 40.7186, lng: -74.0148 },
-  { label: "Foundry St, Old Mill", description: "Back lots", lat: 40.7178, lng: -74.0135 },
-  { label: "Hillcrest Ave", description: "Tree-lined street", lat: 40.7068, lng: -74.0012 },
-  { label: "Lakeside Dr", description: "By the lake", lat: 40.7218, lng: -74.0032 },
-  { label: "Northgate Crossing", description: "School crossing", lat: 40.7222, lng: -74.0125 },
+  { label: "Great Nag Rd, Nandanvan", description: "Near KDK College", lat: 21.1413, lng: 79.12673 },
+  { label: "Katol Rd, Dharampeth", description: "Main market stretch", lat: 21.14097, lng: 79.06243 },
+  { label: "Ramdaspeth", description: "Hospitals & cafes", lat: 21.13659, lng: 79.07499 },
+  { label: "Sitabuldi", description: "City centre market", lat: 21.14023, lng: 79.08716 },
+  { label: "Gandhi Sagar Bridge", description: "Over the Nag river", lat: 21.14579, lng: 79.09873 },
+  { label: "Civil Lines Rd", description: "Government offices", lat: 21.15493, lng: 79.07893 },
+  { label: "Manewada Rd, Hanuman Nagar", description: "Busy commuter road", lat: 21.11752, lng: 79.10448 },
+  { label: "Hanuman Nagar", description: "School crossing", lat: 21.1263, lng: 79.10209 },
+  { label: "Amravati Rd, Bajaj Nagar", description: "Past VNIT", lat: 21.12871, lng: 79.05729 },
+  { label: "Ambazari Lake", description: "Lakeside path", lat: 21.12869, lng: 79.04574 },
+  { label: "Subhash Nagar", description: "Quiet residential", lat: 21.12332, lng: 79.04205 },
 ];
 
 export interface LocatedAt {
@@ -33,7 +37,15 @@ const STORE_KEY = "civicpulse_where";
 export function savedLocation(): LocatedAt | null {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    return raw ? (JSON.parse(raw) as LocatedAt) : null;
+    if (!raw) return null;
+    const loc = JSON.parse(raw) as LocatedAt;
+    // Drop stale saves that a broken label ever wrote (e.g. "near Hillcrest
+    // Ave, undefined") so they re-resolve instead of lingering.
+    if (!loc.label || loc.label.includes("undefined") || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) {
+      localStorage.removeItem(STORE_KEY);
+      return null;
+    }
+    return loc;
   } catch {
     return null;
   }
@@ -73,7 +85,7 @@ export function requestLocation(): Promise<LocationResult> {
   });
 }
 
-/** Label a coordinate with the closest known spot, e.g. "near Oak St, Riverside". */
+/** Label a coordinate with the closest known spot, e.g. "near Great Nag Rd, Nandanvan". */
 export function nearestArea(lat: number, lng: number): { preset: AreaPreset; distanceM: number } {
   let best = AREA_PRESETS[0]!;
   let bestD = Infinity;
@@ -90,4 +102,16 @@ export function nearestArea(lat: number, lng: number): { preset: AreaPreset; dis
 export function presetLabel(preset: AreaPreset, distanceM: number): string {
   if (distanceM < 120) return preset.label;
   return `${preset.label.split(",")[0]} area`;
+}
+
+/**
+ * "near <street>" or "near <street>, <area>" — never a stray "undefined".
+ * Used when no map API label is available for a GPS fix.
+ */
+export function nearPresetLabel(preset: AreaPreset): string {
+  const parts = preset.label
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return parts.length > 1 ? `near ${parts[0]}, ${parts[1]}` : `near ${parts[0] ?? preset.label}`;
 }

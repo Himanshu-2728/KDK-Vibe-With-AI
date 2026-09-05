@@ -31,12 +31,12 @@ The demo runs end-to-end: report → merge → trend → verify → fix → conf
 
 ## 3-minute demo script
 
-**Setup** — seeded neighborhood: Riverside & Westbrook. Two demo accounts (Aisha, citizen;
-Tom, authority) available from one-tap buttons on the auth screen. Password `demo1234`.
+**Setup** — seeded neighborhood: real Nagpur streets (Nandanvan, Dharampeth, Ramdaspeth…). Two demo accounts (Aisha, citizen;
+Rahul, authority) available from one-tap buttons on the auth screen. Password `demo1234`.
 
 **Act 1 — The feed is the product.**
 Open the home feed. It looks like a social app, not a government portal. The top card is
-“Deep pothole on Oak St” — trending 🔥, verified, CRITICAL priority, 52 upvotes. Two details
+“Deep pothole on Great Nag Rd” — trending 🔥, verified, CRITICAL priority, 52 upvotes. Two details
 to call out: the badge *“4 other people reported this too”* — this is duplicate merging at
 work, so those upvotes are concentrated, not splintered — and the upvote button itself.
 Tap it: bounce animation, count ticks up, and the priority score ticks with it. One vote
@@ -44,7 +44,7 @@ per person, guaranteed server-side.
 
 **Act 2 — Reporting is as easy as posting.**
 Tap the floating **+**. Choose a photo (or “retake” to capture live). For location, use
-“my current location” or pick Oak St from the nearby spots. Type one line:
+“my current location” or pick Great Nag Rd from the nearby spots. Type one line:
 “Deep pothole near the school, cars are swerving.” Submit.
 
 The AI pass runs — note it's presented as a suggestion: *Pothole · Infrastructure ·
@@ -55,8 +55,8 @@ add your upvote instead?”* We merge. The issue now shows 6 reporters and its p
 climbs. The story is real: no duplicate cards, real crowd signal.
 
 **Act 3 — The city responds.**
-Sign out, sign in as Tom (authority). The command center shows totals, a red-flaring
-density map at Riverside, and the queue. Verify Aisha's fresh report, assign it to Roads
+Sign out, sign in as Rahul (authority). The command center shows totals, a red-flaring
+density map at Nandanvan, and the queue. Verify Aisha's fresh report, assign it to Roads
 (it auto-routes by category; you can override), mark it In Progress, then **Resolve** with
 a note and an after-photo.
 

@@ -159,7 +159,7 @@ router.get("/issues", (req, res) => {
     const like = `%${q}%`;
     params.push(like, like, like);
   }
-  // Area accepts full labels (“Oak St, Riverside”) or short names (“Riverside”)
+  // Area accepts full labels (“Great Nag Rd, Nandanvan”) or short names (“Nandanvan”)
   // so both the heatmap drill-down and the queue select keep working.
   const areaRaw = typeof req.query.area === "string" ? req.query.area.trim() : "";
   const area =
@@ -185,7 +185,7 @@ router.get("/issues", (req, res) => {
     .all(...params, limit, (page - 1) * limit) as Array<{ area_name: string | null } & Record<string, unknown>>).map(
     (r) => ({
       ...r,
-      // Display the friendlier full label (“Oak St, Riverside”), while the DB
+      // Display the friendlier full label (“Great Nag Rd, Nandanvan”), while the DB
       // stores the short neighborhood name used for filtering.
       area_name: r.area_name ? shortToLabel(r.area_name) : r.area_name,
     }),

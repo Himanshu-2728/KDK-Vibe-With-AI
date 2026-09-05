@@ -5,53 +5,64 @@
    ============================================================ */
 
 :root {
-  --brand: #0f766e;
-  --brand-strong: #115e59;
-  --brand-soft: #ccfbf1;
-  --accent: #f59e0b;
-  --accent-strong: #d97706;
-  --accent-soft: #fef3c7;
+  /* Light theme: a calm, civic look — one trustworthy blue, neutral greys,
+     flat surfaces and visible borders. No tinted blobs or gradients. */
+  --brand: #1d70b8;
+  --brand-strong: #155a94;
+  --brand-soft: #e4f0fa;
+  --accent: #d97706;
+  --accent-strong: #b45309;
+  --accent-soft: #fcf0dc;
 
-  --bg: #f4f7fb;
+  /* Text color placed ON TOP of brand/accent fills (buttons, chips, avatars).
+     Dark mode inverts: brand/accent become light tints, so the label must go
+     dark to stay readable. */
+  --on-brand: #ffffff;
+  --on-accent: #ffffff;
+
+  --bg: #f5f6f8;
   --surface: #ffffff;
-  --surface-2: #eef2f8;
-  --surface-3: #e6ecf4;
-  --text: #17233b;
-  --text-2: #5c6c86;
-  --text-3: #8a99b3;
-  --border: #e2e9f3;
+  --surface-2: #f1f3f6;
+  --surface-3: #e8ebf0;
+  --text: #1d2733;
+  --text-2: #51607a;
+  --text-3: #6d7c96;
+  --border: #d7dde6;
 
   --danger: #dc2626;
   --success: #16a34a;
   --info: #2563eb;
 
   --status-reported: #64748b;
-  --status-ai: #0ea5e9;
-  --status-verified: #6366f1;
-  --status-assigned: #a855f7;
-  --status-progress: #d97706;
-  --status-resolved: #16a34a;
-  --status-confirmed: #059669;
+  --status-ai: #0284c7;
+  --status-verified: #4f46e5;
+  --status-assigned: #9333ea;
+  --status-progress: #c2620a;
+  --status-resolved: #15803d;
+  --status-confirmed: #047857;
 
-  --shadow-sm: 0 1px 2px rgba(16, 32, 60, 0.06);
-  --shadow: 0 1px 3px rgba(16, 32, 60, 0.08), 0 4px 16px rgba(16, 32, 60, 0.06);
-  --shadow-lg: 0 4px 10px rgba(16, 32, 60, 0.08), 0 14px 40px rgba(16, 32, 60, 0.12);
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow: 0 1px 3px rgba(16, 24, 40, 0.07);
+  --shadow-lg: 0 4px 14px rgba(16, 24, 40, 0.1);
 
   --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 20px;
+  --radius: 10px;
+  --radius-lg: 14px;
 
   --font: "Inter", "SF Pro Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --nav-h: 64px;
 }
 
 [data-theme="dark"] {
-  --brand: #2dd4bf;
-  --brand-strong: #5eead4;
-  --brand-soft: #134e4a;
+  --brand: #7db4ea;
+  --brand-strong: #a9cdf3;
+  --brand-soft: #16324f;
   --accent: #fbbf24;
   --accent-strong: #f59e0b;
   --accent-soft: #452a10;
+
+  --on-brand: #0c2238;
+  --on-accent: #33200a;
 
   --bg: #0b1120;
   --surface: #131c2e;
@@ -59,8 +70,8 @@
   --surface-3: #223049;
   --text: #e7edf7;
   --text-2: #9aa9c2;
-  --text-3: #66758f;
-  --border: #243248;
+  --text-3: #8a9ab8;
+  --border: #2a3a52;
 
   --status-reported: #7d8aa0;
   --status-ai: #38bdf8;
@@ -71,8 +82,8 @@
   --status-confirmed: #34d399;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 10px 26px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.45), 0 20px 50px rgba(0, 0, 0, 0.5);
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -136,14 +147,11 @@ img {
 }
 
 /* Desktop: a real app shell — fixed sidebar, content column, right rail.
-   The mobile topbar/bottom-nav hide and a three-column layout takes over. */
+   The mobile topbar/bottom-nav hide and a three-column layout takes over.
+   Flat background (no tinted gradient blobs). */
 @media (min-width: 761px) {
   body {
-    background:
-      radial-gradient(1100px 500px at 85% -10%, color-mix(in srgb, var(--brand-soft) 55%, transparent), transparent 60%),
-      radial-gradient(900px 420px at -10% 110%, color-mix(in srgb, var(--accent-soft) 45%, transparent), transparent 55%),
-      var(--bg);
-    background-attachment: fixed;
+    background: var(--bg);
   }
 }
 
@@ -223,13 +231,17 @@ img {
   gap: 8px;
   padding: 13px 16px;
   border: none;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--brand), #0ea5e9);
-  color: #fff;
+  border-radius: 10px;
+  background: var(--brand);
+  color: var(--on-brand);
   font-size: 15px;
   font-weight: 800;
-  box-shadow: 0 6px 18px rgba(15, 118, 110, 0.35);
-  transition: transform 0.12s ease;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.16);
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.ds-report:hover {
+  background: var(--brand-strong);
 }
 
 .ds-report:active {
@@ -410,11 +422,11 @@ img {
 .brand .logo {
   width: 28px;
   height: 28px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, var(--brand), #0ea5e9);
+  border-radius: 8px;
+  background: var(--brand);
   display: grid;
   place-items: center;
-  color: white;
+  color: var(--on-brand);
   font-size: 15px;
   box-shadow: var(--shadow-sm);
 }
@@ -483,7 +495,7 @@ img {
   gap: 2px;
   border: none;
   background: none;
-  color: var(--text-3);
+  color: var(--text-2);
   font-size: 10.5px;
   font-weight: 600;
   padding: 6px 0;
@@ -514,13 +526,13 @@ img {
   width: 52px;
   height: 52px;
   margin-top: -24px;
-  border-radius: 18px;
+  border-radius: 16px;
   border: none;
-  background: linear-gradient(135deg, var(--brand), #0ea5e9);
-  color: #fff;
+  background: var(--brand);
+  color: var(--on-brand);
   font-size: 26px;
   font-weight: 700;
-  box-shadow: 0 6px 18px rgba(15, 118, 110, 0.4);
+  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.22);
   transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -673,6 +685,12 @@ img {
   -webkit-backdrop-filter: blur(6px);
 }
 
+/* Dark mode brightens every status color, so status chips over photos flip
+   to dark text — white-on-light is unreadable there. */
+[data-theme="dark"] .badge {
+  color: #0b1120;
+}
+
 .badge .beacon {
   width: 6px;
   height: 6px;
@@ -727,8 +745,8 @@ img {
 
 .upvote-btn.voted {
   background: var(--accent);
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.4);
+  color: var(--on-accent);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.18);
 }
 
 .upvote-btn.bounce {
@@ -802,7 +820,7 @@ img {
 .sort-chip.active {
   background: var(--brand);
   border-color: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
 }
 
 .sort-chip.filter-active {
@@ -901,13 +919,13 @@ img {
 
 .btn-primary {
   background: var(--brand);
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+  color: var(--on-brand);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.16);
 }
 
 .btn-accent {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .btn-ghost {
@@ -941,7 +959,13 @@ img {
 .field label {
   font-size: 13px;
   font-weight: 700;
+  color: var(--text);
+}
+
+.input::placeholder,
+.textarea::placeholder {
   color: var(--text-2);
+  opacity: 1; /* Firefox dims placeholders by default — keep them readable */
 }
 
 .input, .textarea, .select {
@@ -1149,8 +1173,8 @@ img {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--brand), #0ea5e9);
-  color: #fff;
+  background: var(--brand);
+  color: var(--on-brand);
   display: grid;
   place-items: center;
   font-size: 12px;
@@ -1634,6 +1658,14 @@ img {
   font-size: 13.5px;
   font-weight: 600;
   margin: 8px 16px;
+}
+
+/* Dark mode: the crimson `--danger` vanishes on a dark red-tinted card, so
+   the message text switches to a light red that actually reads. */
+[data-theme="dark"] .error-banner {
+  background: color-mix(in srgb, var(--danger) 16%, var(--surface));
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  color: #fca5a5;
 }
 
 /* Desktop tweaks */

@@ -176,7 +176,7 @@ Priority Score (0–100) =
   "items": [
     {
       "id": "iss_01HX...",
-      "title": "Deep pothole on Oak St",
+      "title": "Deep pothole on Great Nag Rd",
       "category": { "name": "Infrastructure", "color": "#..." },
       "status": "verified",
       "severity": "critical",
@@ -186,7 +186,7 @@ Priority Score (0–100) =
       "commentCount": 3,
       "duplicateNote": "4 other people reported this too",
       "photo": { "url": "/media/iss_01HX/photo.jpg", "thumbUrl": "..." },
-      "areaName": "Riverside",
+      "areaName": "Nandanvan",
       "distanceMeters": 412,
       "createdAt": "2026-09-01T10:12:00Z",
       "userUpvoted": true
@@ -250,7 +250,7 @@ Double-upvote by the same user returns 200 with unchanged count (idempotent) —
 
 > Aisha hits a deep pothole on her commute. She pulls over, taps **+**, snaps a photo — GPS pins her location automatically. She types "deep pothole, almost wrecked my wheel." CivicPulse's AI pass suggests **Pothole · Infrastructure · High severity · "Large dark cavity on asphalt, likely a deep pothole."** She confirms. The duplicate pass finds **4 nearby reports** of the same pothole within 150 m — the app asks "This looks like an issue already reported nearby — add your upvote instead?" She upvotes; the issue now shows **"5 people reported this"** and its priority jumps to **CRITICAL**. 
 >
-> Back on the feed, the issue is trending — upvotes rolling in with the little bounce animation, count ticking up, priority bar climbing. The municipal authority opens the admin dashboard, sees the heatmap flaring red on Oak St, verifies the report, auto-routes it to **Roads**, and marks it **In Progress**. A week later they upload an after-fix photo and mark **Resolved**. Aisha gets a notification, opens the issue, sees the new pavement, and taps **"Confirm this is fixed."** The feed shows **Confirmed**, the dashboard's resolved count ticks up, and the neighborhood gets a "3 issues resolved near you this week" digest (nice-to-have).
+> Back on the feed, the issue is trending — upvotes rolling in with the little bounce animation, count ticking up, priority bar climbing. The municipal authority opens the admin dashboard, sees the heatmap flaring red on Great Nag Rd, verifies the report, auto-routes it to **Roads**, and marks it **In Progress**. A week later they upload an after-fix photo and mark **Resolved**. Aisha gets a notification, opens the issue, sees the new pavement, and taps **"Confirm this is fixed."** The feed shows **Confirmed**, the dashboard's resolved count ticks up, and the neighborhood gets a "3 issues resolved near you this week" digest (nice-to-have).
 
 ---
 

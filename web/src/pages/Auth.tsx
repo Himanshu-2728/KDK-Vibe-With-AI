@@ -90,10 +90,10 @@ export default function Auth() {
                 <strong>Aisha Khan</strong> — citizen reporter with a story to tell
               </span>
             </button>
-            <button className="option-card" disabled={busy} onClick={() => demoLogin("tom@city.gov")}>
+            <button className="option-card" disabled={busy} onClick={() => demoLogin("rahul@city.gov")}>
               <span style={{ fontSize: 22 }}>🏛</span>
               <span>
-                <strong>Tom Alvarez</strong> — city authority with dashboard access
+                <strong>Rahul Deshmukh</strong> — city authority with dashboard access
               </span>
             </button>
           </div>
@@ -110,7 +110,7 @@ export default function Auth() {
                 flex: 1,
                 justifyContent: "center",
                 background: mode === m ? "var(--brand)" : "var(--surface-2)",
-                color: mode === m ? "#fff" : "var(--text)",
+                color: mode === m ? "var(--on-brand)" : "var(--text)",
               }}
               onClick={() => {
                 setMode(m);

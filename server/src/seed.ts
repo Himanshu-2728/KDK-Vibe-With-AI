@@ -1,8 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
 import type Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
-import { config } from "./config.js";
 import { computePriority } from "./services/priority.js";
 import { haversineMeters } from "./services/geo.js";
 
@@ -13,155 +10,55 @@ function iso(daysAgo: number, hoursAgo = 0): string {
   return d.toISOString();
 }
 
-interface SeedImage {
-  file: string;
-  label: string;
-  bg: [string, string];
-  shapes: string;
-}
-
-const SEED_IMAGES: SeedImage[] = [
-  {
-    file: "pothole.svg",
-    label: "Deep pothole — Oak St",
-    bg: ["#3b3f46", "#17181b"],
-    shapes: `<ellipse cx="400" cy="330" rx="150" ry="70" fill="#0c0d0f"/>
-             <ellipse cx="400" cy="325" rx="130" ry="55" fill="#1c1e22"/>
-             <path d="M60 420 q170 -40 340 0 t340 0" stroke="#8b939c" stroke-width="6" fill="none"/>
-             <circle cx="560" cy="200" r="8" fill="#e8b33a"/>`,
-  },
-  {
-    file: "streetlight.svg",
-    label: "Broken streetlight — Elm Ave",
-    bg: ["#1f2937", "#0b1120"],
-    shapes: `<rect x="330" y="120" width="10" height="300" fill="#4b5563"/>
-             <rect x="240" y="90" width="190" height="14" rx="7" fill="#4b5563"/>
-             <rect x="330" y="420" width="80" height="10" rx="5" fill="#374151"/>
-             <circle cx="240" cy="150" r="26" fill="#2b2f36"/>
-             <circle cx="240" cy="150" r="14" fill="#3a3f47"/>`,
-  },
-  {
-    file: "leak.svg",
-    label: "Water leakage — Maple Dr",
-    bg: ["#164e63", "#0c2b37"],
-    shapes: `<ellipse cx="400" cy="420" rx="220" ry="60" fill="#38bdf8" opacity="0.85"/>
-             <path d="M380 120 v120 M420 100 v150 M360 140 v90" stroke="#7dd3fc" stroke-width="14" stroke-linecap="round"/>
-             <ellipse cx="400" cy="400" rx="140" ry="36" fill="#bae6fd" opacity="0.6"/>`,
-  },
-  {
-    file: "garbage.svg",
-    label: "Garbage dumping — Riverside Park",
-    bg: ["#4c1d95", "#2e1065"],
-    shapes: `<circle cx="330" cy="360" r="55" fill="#1e1b4b"/>
-             <circle cx="440" cy="390" r="60" fill="#312e81"/>
-             <circle cx="520" cy="350" r="48" fill="#1e1b4b"/>
-             <rect x="360" y="300" width="120" height="60" rx="10" fill="#a78bfa" opacity="0.5"/>`,
-  },
-  {
-    file: "tree.svg",
-    label: "Fallen tree — Highland Rd",
-    bg: ["#14532d", "#052e16"],
-    shapes: `<path d="M150 480 L400 300 L650 480" stroke="#78350f" stroke-width="34" stroke-linecap="round" fill="none"/>
-             <circle cx="400" cy="260" r="80" fill="#16a34a"/>
-             <circle cx="330" cy="220" r="55" fill="#22c55e"/>
-             <circle cx="480" cy="230" r="50" fill="#15803d"/>`,
-  },
-  {
-    file: "railing.svg",
-    label: "Broken railing — Riverside Bridge",
-    bg: ["#1e293b", "#0f172a"],
-    shapes: `<rect x="80" y="330" width="640" height="120" rx="8" fill="#475569"/>
-             <rect x="140" y="120" width="16" height="330" fill="#64748b"/>
-             <rect x="640" y="120" width="16" height="330" fill="#64748b"/>
-             <rect x="240" y="140" width="300" height="14" rx="7" fill="#64748b"/>
-             <path d="M400 154 L540 140 L520 300 L420 320" stroke="#94a3b8" stroke-width="12" fill="none" stroke-linecap="round"/>`,
-  },
-  {
-    file: "after-fix.svg",
-    label: "Oak St repaved — after fix",
-    bg: ["#334155", "#1e293b"],
-    shapes: `<rect x="60" y="300" width="680" height="140" rx="10" fill="#0f172a"/>
-             <path d="M60 340 q170 -20 340 0 t340 0 M60 400 q170 20 340 0 t340 0" stroke="#475569" stroke-width="4" fill="none"/>
-             <rect x="60" y="440" width="340" height="26" rx="13" fill="#e2e8f0"/>
-             <circle cx="560" cy="180" r="34" fill="#16a34a"/>`,
-  },
-];
-
-// Secondary photos for the wider city so each new issue has a labeled image.
-const EXTRA_IMAGES: SeedImage[] = [
-  {
-    file: "drain.svg",
-    label: "Sunken drain — Mill Rd, Old Mill",
-    bg: ["#374151", "#111827"],
-    shapes: `<rect x="200" y="240" width="400" height="180" rx="16" fill="#0b0d10"/>
-             <rect x="240" y="280" width="120" height="14" rx="4" fill="#6b7280"/>
-             <rect x="440" y="280" width="120" height="14" rx="4" fill="#6b7280"/>
-             <rect x="240" y="360" width="120" height="14" rx="4" fill="#6b7280"/>
-             <rect x="440" y="360" width="120" height="14" rx="4" fill="#6b7280"/>
-             <path d="M60 500 q170 -40 340 -10 t340 -20" stroke="#9ca3af" stroke-width="6" fill="none"/>`,
-  },
-  {
-    file: "sidewalk.svg",
-    label: "Cracked sidewalk — Hillcrest Ave",
-    bg: ["#57534e", "#292524"],
-    shapes: `<rect x="60" y="380" width="680" height="120" rx="8" fill="#a8a29e"/>
-             <path d="M220 380 L260 500 M300 380 L330 500 M420 380 L400 500 M520 380 L560 500" stroke="#44403c" stroke-width="10"/>
-             <path d="M260 500 l60 -40 40 30 M400 500 l70 -55" stroke="#1c1917" stroke-width="8" fill="none"/>`,
-  },
-  {
-    file: "light-out.svg",
-    label: "Dark street — Lakeside Dr",
-    bg: ["#1f2937", "#0b1120"],
-    shapes: `<rect x="330" y="120" width="10" height="300" fill="#4b5563"/>
-             <rect x="300" y="90" width="80" height="14" rx="7" fill="#4b5563"/>
-             <rect x="336" y="420" width="80" height="10" rx="5" fill="#374151"/>
-             <circle cx="330" cy="140" r="18" fill="#1f2937"/>
-             <path d="M-10 260 L810 250" stroke="#64748b" stroke-width="3" opacity="0.5"/>`,
-  },
-  {
-    file: "pothole-elm.svg",
-    label: "Pothole — Elm Ave, Riverside",
-    bg: ["#3b3f46", "#17181b"],
-    shapes: `<ellipse cx="380" cy="330" rx="120" ry="60" fill="#0c0d0f"/>
-             <ellipse cx="560" cy="380" rx="70" ry="34" fill="#141518"/>
-             <path d="M60 460 q170 -40 340 0 t340 0" stroke="#8b939c" stroke-width="6" fill="none"/>`,
-  },
-  {
-    file: "branches.svg",
-    label: "Broken branch — Lakeside path",
-    bg: ["#14532d", "#052e16"],
-    shapes: `<path d="M180 480 L430 240 L700 480" stroke="#78350f" stroke-width="24" stroke-linecap="round" fill="none"/>
-             <circle cx="430" cy="200" r="60" fill="#22c55e"/>
-             <circle cx="520" cy="330" r="40" fill="#16a34a"/>`,
-  },
-  {
-    file: "trash-pile.svg",
-    label: "Dumped waste — Old Mill lot",
-    bg: ["#4c1d95", "#2e1065"],
-    shapes: `<rect x="260" y="300" width="180" height="140" rx="14" fill="#8b5cf6" opacity="0.8"/>
-             <circle cx="520" cy="400" r="50" fill="#1e1b4b"/>
-             <path d="M300 470 q40 -30 90 -10" stroke="#6d28d9" stroke-width="12" fill="none"/>`,
-  },
-];
-
-function writeSeedImages(): Map<string, string> {
-  const dir = path.join(config.mediaDir, "seed");
-  fs.mkdirSync(dir, { recursive: true });
-  const urls = new Map<string, string>();
-  for (const img of [...SEED_IMAGES, ...EXTRA_IMAGES]) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="${img.bg[0]}"/><stop offset="1" stop-color="${img.bg[1]}"/>
-  </linearGradient></defs>
-  <rect width="800" height="600" fill="url(#g)"/>
-  ${img.shapes}
-  <text x="40" y="560" font-family="system-ui, sans-serif" font-size="30" fill="#ffffff" opacity="0.92">${img.label}</text>
-</svg>`;
-    fs.writeFileSync(path.join(dir, img.file), svg);
-    urls.set(img.file, `/media/seed/${img.file}`);
-  }
-  return urls;
-}
+/**
+ * Real photos for the seeded demo issues (CC-BY / CC-BY-SA works hosted on
+ * Wikimedia Commons, served as ~960px thumbnails). The old demo generated
+ * SVG stand-ins; real photos make the feed look like an actual city.
+ * Hotlinking Commons thumbnails is fine for a demo; self-host before shipping.
+ *
+ * Sources (all via Wikimedia Commons, geograph images © their photographers):
+ *  - pothole.svg:     “Newport Carisbrooke Road pothole 2”
+ *  - streetlight.svg: “Broken lamp post, Verhorechye”
+ *  - leak.svg:        “Flow from leaking water pipe in Churchland Lane” (geograph)
+ *  - garbage.svg:     “Garbage dump 294A0064 São Vicente”
+ *  - tree.svg:        “Road blocked by fallen tree” (geograph)
+ *  - railing.svg:     “Broken railings over the brook” (geograph)
+ *  - after-fix.svg:   “Heavy machines for asphalt pavement in Canada”
+ *  - drain.svg:       “Storm drain pushed up through road … Canterbury earthquake”
+ *  - sidewalk.svg:    “Broken sidewalk LA”
+ *  - light-out.svg:   “Street lamp – Panorama” (Greg Zaal via Poly Haven)
+ *  - pothole-elm.svg: “Newport Carisbrooke Road pothole”
+ *  - branches.svg:    “Broken tree branch” (geograph)
+ *  - trash-pile.svg:  “Illegal dump of building waste” (geograph)
+ */
+const SEED_IMAGE_URLS: Record<string, string> = {
+  "pothole.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/Newport_Carisbrooke_Road_pothole_2.JPG/960px-Newport_Carisbrooke_Road_pothole_2.JPG",
+  "streetlight.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/Broken_lamp_post%2C_Verhorechye.jpg/960px-Broken_lamp_post%2C_Verhorechye.jpg",
+  "leak.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Flow_from_leaking_water_pipe_in_Churchland_Lane%2C_Sedlescombe_-_geograph.org.uk_-_7250470.jpg/960px-Flow_from_leaking_water_pipe_in_Churchland_Lane%2C_Sedlescombe_-_geograph.org.uk_-_7250470.jpg",
+  "garbage.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Garbage_dump_294A0064_S%C3%A3o_Vicente.jpg/960px-Garbage_dump_294A0064_S%C3%A3o_Vicente.jpg",
+  "tree.svg":
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Road_blocked_by_fallen_tree_-_geograph.org.uk_-_2927837.jpg/960px-Road_blocked_by_fallen_tree_-_geograph.org.uk_-_2927837.jpg",
+  "railing.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Broken_railings_over_the_brook_-_geograph.org.uk_-_7065139.jpg/960px-Broken_railings_over_the_brook_-_geograph.org.uk_-_7065139.jpg",
+  "after-fix.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/79/Heavy_machines_for_asphalt_pavement_in_Canada.jpg/960px-Heavy_machines_for_asphalt_pavement_in_Canada.jpg",
+  "drain.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Storm_drain_pushed_up_through_road_in_the_2010_Canterbury_earthquake.jpg/960px-Storm_drain_pushed_up_through_road_in_the_2010_Canterbury_earthquake.jpg",
+  "sidewalk.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/Broken_sidewalk_LA.jpg/960px-Broken_sidewalk_LA.jpg",
+  "light-out.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Street_lamp_%E2%80%93_Panorama_%28Greg_Zaal_via_Poly_Haven%29.jpg/960px-Street_lamp_%E2%80%93_Panorama_%28Greg_Zaal_via_Poly_Haven%29.jpg",
+  "pothole-elm.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0b/Newport_Carisbrooke_Road_pothole.JPG/960px-Newport_Carisbrooke_Road_pothole.JPG",
+  "branches.svg":
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Broken_tree_branch_-_geograph.org.uk_-_1572547.jpg/960px-Broken_tree_branch_-_geograph.org.uk_-_1572547.jpg",
+  "trash-pile.svg":
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Illegal_dump_of_building_waste_-_geograph.org.uk_-_6562819.jpg/960px-Illegal_dump_of_building_waste_-_geograph.org.uk_-_6562819.jpg",
+};
 
 export function seedIfEmpty(db: Database.Database): void {
   const count = db.prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number };
@@ -170,27 +67,27 @@ export function seedIfEmpty(db: Database.Database): void {
 }
 
 function seed(db: Database.Database): void {
-  const img = writeSeedImages();
+  const img = new Map<string, string>(Object.entries(SEED_IMAGE_URLS));
 
   const insert = db.transaction(() => {
-    // --- Users ---
+    // --- Users (Indian names — the demo city is Nagpur) ---
     const users: Array<[string, string, string, string]> = [
       ["usr_aisha", "aisha@example.com", "Aisha Khan", "citizen"],
-      ["usr_marcus", "marcus@example.com", "Marcus Reed", "citizen"],
+      ["usr_marcus", "rohan@example.com", "Rohan Sharma", "citizen"],
       ["usr_priya", "priya@example.com", "Priya Patel", "citizen"],
-      ["usr_jordan", "jordan@example.com", "Jordan Lee", "citizen"],
-      ["usr_sam", "sam@example.com", "Sam Ortiz", "citizen"],
-      ["usr_tom", "tom@city.gov", "Tom Alvarez", "authority"],
+      ["usr_jordan", "arjun@example.com", "Arjun Mehta", "citizen"],
+      ["usr_sam", "sahil@example.com", "Sahil Verma", "citizen"],
+      ["usr_tom", "rahul@city.gov", "Rahul Deshmukh", "authority"],
     ];
     // A pool of 60 extra residents so upvotes come from distinct users
     // (one upvote per user per issue is enforced by the UNIQUE constraint).
     const VOTER_NAMES = [
-      "Ana", "Ben", "Carla", "Diego", "Emma", "Felix", "Grace", "Hugo", "Ivy", "Jake",
-      "Kira", "Leo", "Mina", "Noah", "Olive", "Pete", "Quinn", "Rosa", "Sam", "Tara",
-      "Uma", "Vic", "Wendy", "Xander", "Yara", "Zack", "Alba", "Bruno", "Cora", "Dane",
-      "Elena", "Finn", "Gia", "Hank", "Ines", "Jonas", "Kai", "Luna", "Milo", "Nina",
-      "Omar", "Pia", "Ravi", "Sofia", "Theo", "Ursula", "Vera", "Will", "Xena", "Yusuf",
-      "Zara", "Amir", "Beth", "Cole", "Dina", "Eli", "Faye", "Gabe", "Holly", "Ivan",
+      "Aarav", "Vihaan", "Aditya", "Arjun", "Rohan", "Kabir", "Dev", "Ishaan", "Kunal", "Manav",
+      "Nikhil", "Om", "Parth", "Ravi", "Sameer", "Tarun", "Uday", "Varun", "Yash", "Karan",
+      "Aakash", "Harsh", "Mohit", "Pranav", "Siddharth", "Gaurav", "Deepak", "Rahul", "Sanjay", "Amit",
+      "Vikram", "Naveen", "Rajesh", "Kiran", "Anil", "Ananya", "Bhavna", "Charu", "Diya", "Esha",
+      "Farah", "Gauri", "Hina", "Ira", "Jaya", "Kavya", "Leela", "Mira", "Naina", "Pooja",
+      "Riya", "Sana", "Tanvi", "Urvi", "Vidya", "Sneha", "Neha", "Priyanka", "Shreya", "Swati",
     ];
     const insUser = db.prepare(
       "INSERT INTO users (id, email, password_hash, display_name, role, avatar_url, created_at) VALUES (?,?,?,?,?,?,?)",
@@ -237,13 +134,13 @@ function seed(db: Database.Database): void {
     );
 
     // --- Issues & reports ---
-    // Oak St pothole: the demo centerpiece — 5 merged reports, trending, CRITICAL.
+    // Great Nag Rd pothole: the demo centerpiece — 5 merged reports, trending, CRITICAL.
     const potholeReports: Array<[string, string, string, number, number, number, number]> = [
-      ["rep_pothole_aisha", "usr_aisha", "Deep pothole on Oak St near Riverside school, almost wrecked my wheel", 40.7135, -74.0032, 6, 2],
-      ["rep_pothole_marcus", "usr_marcus", "Big pothole on Oak St, cars swerving to avoid it", 40.7136, -74.0030, 5, 14],
-      ["rep_pothole_priya", "usr_priya", "Pothole outside Riverside school — dangerous for kids crossing", 40.7137, -74.0029, 4, 8],
-      ["rep_pothole_jordan", "usr_jordan", "Deep pothole near the bus stop on Oak St", 40.7133, -74.0035, 3, 6],
-      ["rep_pothole_sam", "usr_sam", "Another big pothole on Oak St, getting worse", 40.7134, -74.0031, 2, 10],
+      ["rep_pothole_aisha", "usr_aisha", "Deep pothole on Great Nag Rd near KDK College, almost wrecked my wheel", 21.1413, 79.12673, 6, 2],
+      ["rep_pothole_marcus", "usr_marcus", "Big pothole on Great Nag Rd, cars swerving to avoid it", 21.14145, 79.1268, 5, 14],
+      ["rep_pothole_priya", "usr_priya", "Pothole outside KDK College — dangerous for students crossing", 21.14135, 79.12685, 4, 8],
+      ["rep_pothole_jordan", "usr_jordan", "Deep pothole near the bus stop on Great Nag Rd", 21.14125, 79.1266, 3, 6],
+      ["rep_pothole_sam", "usr_sam", "Another big pothole on Great Nag Rd, getting worse", 21.1414, 79.1267, 2, 10],
     ];
 
     const insReport = db.prepare(
@@ -320,12 +217,12 @@ function seed(db: Database.Database): void {
       categoryId: 1,
       departmentId: 1,
       status: "verified",
-      title: "Deep pothole on Oak St",
+      title: "Deep pothole on Great Nag Rd",
       description:
-        "Large pothole on Oak St between Riverside school and the bus stop. Getting deeper every day — cars are swerving into the other lane.",
-      lat: 40.7135,
-      lng: -74.0032,
-      area: "Riverside",
+        "Large pothole on Great Nag Rd near KDK College, right at the bus stop. Getting deeper every day — cars are swerving into the other lane.",
+      lat: 21.1413,
+      lng: 79.12673,
+      area: "Nandanvan",
       severity: "high",
       upvoteCount: 47,
       reportCount: 5,
@@ -353,7 +250,7 @@ function seed(db: Database.Database): void {
       confirmedAt: null,
     });
     potholeReports.forEach(([id, uid, desc, lat, lng, days, hours]) =>
-      insReport.run(id, "iss_oak_pothole", uid, desc, lat, lng, "Oak St, Riverside", iso(days, hours)),
+      insReport.run(id, "iss_oak_pothole", uid, desc, lat, lng, "Great Nag Rd, Nandanvan", iso(days, hours)),
     );
     insImage.run("img_pothole", "iss_oak_pothole", "rep_pothole_aisha", "usr_aisha", img.get("pothole.svg"), img.get("pothole.svg"), "report", iso(6, 3));
 
@@ -362,12 +259,12 @@ function seed(db: Database.Database): void {
       categoryId: 4,
       departmentId: 2,
       status: "assigned",
-      title: "Streetlight out on Elm Ave",
+      title: "Streetlight out on Katol Rd",
       description:
-        "Streetlight has been out for a week, entire block is pitch dark at night. Feels unsafe walking home.",
-      lat: 40.7148,
-      lng: -74.0075,
-      area: "Riverside",
+        "Streetlight has been out for a week, the whole stretch of Katol Rd is pitch dark at night. Feels unsafe walking home.",
+      lat: 21.14097,
+      lng: 79.06243,
+      area: "Dharampeth",
       severity: "medium",
       upvoteCount: 12,
       reportCount: 1,
@@ -393,7 +290,7 @@ function seed(db: Database.Database): void {
       resolvedAt: null,
       confirmedAt: null,
     });
-    insReport.run("rep_light_marcus", "iss_streetlight_elm", "usr_marcus", "Streetlight out on Elm Ave, block is pitch dark", 40.7148, -74.0075, "Elm Ave, Riverside", iso(4, 6));
+    insReport.run("rep_light_marcus", "iss_streetlight_elm", "usr_marcus", "Streetlight out on Katol Rd, the stretch is pitch dark", 21.14097, 79.06243, "Katol Rd, Dharampeth", iso(4, 6));
     insImage.run("img_streetlight", "iss_streetlight_elm", "rep_light_marcus", "usr_marcus", img.get("streetlight.svg"), img.get("streetlight.svg"), "report", iso(4, 6));
 
     seedIssue({
@@ -401,12 +298,12 @@ function seed(db: Database.Database): void {
       categoryId: 3,
       departmentId: 3,
       status: "in_progress",
-      title: "Water leaking from main on Maple Dr",
+      title: "Water leaking from main in Ramdaspeth",
       description:
-        "Water has been gushing out of the road on Maple Dr for two days. The curb is flooding and water is pooling in the gutter.",
-      lat: 40.7112,
-      lng: -74.009,
-      area: "Westbrook",
+        "Water has been gushing out of the road in Ramdaspeth for two days. The curb is flooding and water is pooling in the gutter.",
+      lat: 21.13659,
+      lng: 79.07499,
+      area: "Ramdaspeth",
       severity: "high",
       upvoteCount: 8,
       reportCount: 1,
@@ -432,7 +329,7 @@ function seed(db: Database.Database): void {
       resolvedAt: null,
       confirmedAt: null,
     });
-    insReport.run("rep_leak_priya", "iss_leak_maple", "usr_priya", "Water leaking from main on Maple Dr, curb is flooding", 40.7112, -74.009, "Maple Dr, Westbrook", iso(2, 4));
+    insReport.run("rep_leak_priya", "iss_leak_maple", "usr_priya", "Water leaking from main in Ramdaspeth, curb is flooding", 21.13659, 79.07499, "Ramdaspeth", iso(2, 4));
     insImage.run("img_leak", "iss_leak_maple", "rep_leak_priya", "usr_priya", img.get("leak.svg"), img.get("leak.svg"), "report", iso(2, 4));
 
     seedIssue({
@@ -440,12 +337,12 @@ function seed(db: Database.Database): void {
       categoryId: 2,
       departmentId: 4,
       status: "ai_analyzed",
-      title: "Garbage dumped in Riverside Park",
+      title: "Garbage dumped near Ambazari Lake",
       description:
-        "Someone dumped a pile of garbage bags by the park entrance. It's been there for days and starting to smell.",
-      lat: 40.717,
-      lng: -74.002,
-      area: "Riverside",
+        "Someone dumped a pile of garbage bags near the Ambazari Lake entrance. It's been there for days and starting to smell.",
+      lat: 21.12869,
+      lng: 79.04574,
+      area: "Ambazari",
       severity: "medium",
       upvoteCount: 3,
       reportCount: 1,
@@ -471,7 +368,7 @@ function seed(db: Database.Database): void {
       resolvedAt: null,
       confirmedAt: null,
     });
-    insReport.run("rep_garbage_jordan", "iss_garbage_park", "usr_jordan", "Garbage dumped in Riverside Park near the entrance", 40.717, -74.002, "Riverside Park", iso(1, 2));
+    insReport.run("rep_garbage_jordan", "iss_garbage_park", "usr_jordan", "Garbage dumped near the Ambazari Lake entrance", 21.12869, 79.04574, "Ambazari Lake", iso(1, 2));
     insImage.run("img_garbage", "iss_garbage_park", "rep_garbage_jordan", "usr_jordan", img.get("garbage.svg"), img.get("garbage.svg"), "report", iso(1, 2));
 
     seedIssue({
@@ -479,12 +376,12 @@ function seed(db: Database.Database): void {
       categoryId: 6,
       departmentId: 5,
       status: "confirmed",
-      title: "Fallen tree blocking Highland Rd",
+      title: "Fallen tree blocking Manewada Rd",
       description:
-        "Large tree came down across Highland Rd after the storm, blocking one lane completely.",
-      lat: 40.7095,
-      lng: -74.011,
-      area: "Westbrook",
+        "Large tree came down across Manewada Rd after the storm, blocking one lane completely.",
+      lat: 21.11752,
+      lng: 79.10448,
+      area: "Manewada",
       severity: "medium",
       upvoteCount: 15,
       reportCount: 1,
@@ -510,7 +407,7 @@ function seed(db: Database.Database): void {
       resolvedAt: iso(3, 2),
       confirmedAt: iso(2, 1),
     });
-    insReport.run("rep_tree_aisha", "iss_tree_highland", "usr_aisha", "Large tree came down across Highland Rd, blocking a lane", 40.7095, -74.011, "Highland Rd, Westbrook", iso(6, 8));
+    insReport.run("rep_tree_aisha", "iss_tree_highland", "usr_aisha", "Large tree came down across Manewada Rd, blocking a lane", 21.11752, 79.10448, "Manewada Rd, Hanuman Nagar", iso(6, 8));
     insImage.run("img_tree", "iss_tree_highland", "rep_tree_aisha", "usr_aisha", img.get("tree.svg"), img.get("tree.svg"), "report", iso(6, 8));
     insImage.run("img_tree_after", "iss_tree_highland", "rep_tree_aisha", "usr_tom", img.get("after-fix.svg"), img.get("after-fix.svg"), "after_fix", iso(3, 2));
 
@@ -519,12 +416,12 @@ function seed(db: Database.Database): void {
       categoryId: 1,
       departmentId: 1,
       status: "reported",
-      title: "Broken railing on Riverside Bridge",
+      title: "Broken railing on Gandhi Sagar Bridge",
       description:
-        "Section of the pedestrian railing on Riverside Bridge is bent and loose after a delivery truck hit it.",
-      lat: 40.7155,
-      lng: -74.0045,
-      area: "Riverside",
+        "Section of the pedestrian railing on Gandhi Sagar Bridge is bent and loose after a truck hit it.",
+      lat: 21.14579,
+      lng: 79.09873,
+      area: "Sitabuldi",
       severity: "low",
       upvoteCount: 1,
       reportCount: 1,
@@ -550,7 +447,7 @@ function seed(db: Database.Database): void {
       resolvedAt: null,
       confirmedAt: null,
     });
-    insReport.run("rep_railing_sam", "iss_railing_bridge", "usr_sam", "Broken railing on Riverside Bridge, section is bent and loose", 40.7155, -74.0045, "Riverside Bridge", iso(0, 14));
+    insReport.run("rep_railing_sam", "iss_railing_bridge", "usr_sam", "Broken railing on Gandhi Sagar Bridge, section is bent and loose", 21.14579, 79.09873, "Gandhi Sagar Bridge", iso(0, 14));
     insImage.run("img_railing", "iss_railing_bridge", "rep_railing_sam", "usr_sam", img.get("railing.svg"), img.get("railing.svg"), "report", iso(0, 14));
 
     // --- Upvotes (staggered so the pothole shows velocity) ---
@@ -643,11 +540,11 @@ function seed(db: Database.Database): void {
     const insNotif = db.prepare(
       "INSERT INTO notifications (id, user_id, type, issue_id, body, read, created_at) VALUES (?,?,?,?,?,?,?)",
     );
-    insNotif.run("nt_1", "usr_aisha", "resolved", "iss_tree_highland", "“Fallen tree blocking Highland Rd” was marked resolved by the city.", 1, iso(3, 1));
-    insNotif.run("nt_2", "usr_aisha", "resolution_confirmed", "iss_tree_highland", "Your confirmation was recorded for “Fallen tree blocking Highland Rd”.", 1, iso(2, 0));
-    insNotif.run("nt_3", "usr_aisha", "verified", "iss_oak_pothole", "“Deep pothole on Oak St” was verified by the city and is now HIGH priority.", 0, iso(1, 4));
-    insNotif.run("nt_4", "usr_aisha", "priority_tier_up", "iss_oak_pothole", "“Deep pothole on Oak St” reached CRITICAL priority — 5 people reported this issue.", 0, iso(0, 20));
-    insNotif.run("nt_5", "usr_marcus", "priority_tier_up", "iss_oak_pothole", "“Deep pothole on Oak St” reached CRITICAL priority.", 0, iso(0, 20));
+    insNotif.run("nt_1", "usr_aisha", "resolved", "iss_tree_highland", "“Fallen tree blocking Manewada Rd” was marked resolved by the city.", 1, iso(3, 1));
+    insNotif.run("nt_2", "usr_aisha", "resolution_confirmed", "iss_tree_highland", "Your confirmation was recorded for “Fallen tree blocking Manewada Rd”.", 1, iso(2, 0));
+    insNotif.run("nt_3", "usr_aisha", "verified", "iss_oak_pothole", "“Deep pothole on Great Nag Rd” was verified by the city and is now HIGH priority.", 0, iso(1, 4));
+    insNotif.run("nt_4", "usr_aisha", "priority_tier_up", "iss_oak_pothole", "“Deep pothole on Great Nag Rd” reached CRITICAL priority — 5 people reported this issue.", 0, iso(0, 20));
+    insNotif.run("nt_5", "usr_marcus", "priority_tier_up", "iss_oak_pothole", "“Deep pothole on Great Nag Rd” reached CRITICAL priority.", 0, iso(0, 20));
 
     // --- Wider city: extra neighborhoods so the map, feed and queue feel real. ---
     const CAT_NAMES: Record<number, string> = { 1: "Infrastructure", 2: "Sanitation", 3: "Water", 4: "Electrical", 5: "Safety", 6: "Environment" };
@@ -662,72 +559,72 @@ function seed(db: Database.Database): void {
     }> = [
       {
         id: "iss_drain_oldmill", cat: 1, status: "verified",
-        title: "Sunken drain cover on Mill Rd",
-        desc: "The drain cover outside the Old Mill bakery has sunk a few inches — delivery vans bottom out on it every morning.",
-        lat: 40.7186, lng: -74.0148, area: "Old Mill", type: "Sunken Drain",
+        title: "Sunken drain cover on Manewada Rd",
+        desc: "The drain cover on Manewada Rd has sunk a few inches — delivery vans bottom out on it every morning.",
+        lat: 21.1177, lng: 79.1046, area: "Manewada", type: "Sunken Drain",
         severity: "medium", upvotes: 9, firstDays: 8, lastDays: 2, imgFile: "drain.svg",
         reporter: "usr_voter_3", safetyRisk: 0, locationImportance: 3, confidence: 0.84,
         historyNote: { verified: "Verified — matches photos of the sinking cover" },
       },
       {
         id: "iss_leak_oldmill", cat: 3, status: "assigned",
-        title: "Water seeping through pavement on Mill Rd",
-        desc: "Water has been seeping up through the pavement near the corner of Mill and Foundry for three days.",
-        lat: 40.719, lng: -74.0135, area: "Old Mill", type: "Water Leakage",
+        title: "Water seeping through pavement near Hanuman Nagar",
+        desc: "Water has been seeping up through the pavement near Hanuman Nagar for three days.",
+        lat: 21.1264, lng: 79.1022, area: "Manewada", type: "Water Leakage",
         severity: "medium", upvotes: 6, firstDays: 5, lastDays: 1, imgFile: "leak.svg",
         reporter: "usr_voter_11", safetyRisk: 0, locationImportance: 0, confidence: 0.88,
         historyNote: { verified: "Verified — moisture on the road surface", assigned: "Assigned to Water" },
       },
       {
         id: "iss_garbage_oldmill", cat: 2, status: "ai_analyzed",
-        title: "Waste dumped behind Old Mill lot",
-        desc: "Someone dumped old furniture and bags behind the vacant lot on Foundry St.",
-        lat: 40.7178, lng: -74.0142, area: "Old Mill", type: "Garbage Dumping",
+        title: "Waste dumped near Subhash Nagar",
+        desc: "Someone dumped old furniture and bags near the vacant lot in Subhash Nagar.",
+        lat: 21.1234, lng: 79.0421, area: "Ambazari", type: "Garbage Dumping",
         severity: "low", upvotes: 0, firstDays: 0.6, lastDays: 0.6, imgFile: "trash-pile.svg",
         reporter: "usr_voter_19", safetyRisk: 0, locationImportance: 0, confidence: 0.9,
         historyNote: {},
       },
       {
         id: "iss_sidewalk_hillcrest", cat: 1, status: "reported",
-        title: "Cracked sidewalk lifting on Hillcrest Ave",
-        desc: "Tree roots have cracked and lifted the sidewalk outside #42 — a trip hazard after dark.",
-        lat: 40.7068, lng: -74.0012, area: "Hillcrest", type: "Damaged Infrastructure",
+        title: "Cracked sidewalk lifting on Great Nag Rd",
+        desc: "Tree roots have cracked and lifted the sidewalk on Great Nag Rd — a trip hazard after dark.",
+        lat: 21.1417, lng: 79.1272, area: "Nandanvan", type: "Damaged Infrastructure",
         severity: "medium", upvotes: 2, firstDays: 1, lastDays: 0.2, imgFile: "sidewalk.svg",
         reporter: "usr_voter_27", safetyRisk: 6, locationImportance: 3, confidence: 0.79,
         historyNote: {},
       },
       {
         id: "iss_light_northgate", cat: 4, status: "in_progress",
-        title: "Streetlight out at Northgate crossing",
-        desc: "The light at the Northgate school crossing is dead — kids cross in the dark at 7am.",
-        lat: 40.7222, lng: -74.0125, area: "Northgate", type: "Broken Streetlight",
+        title: "Streetlight out at Civil Lines crossing",
+        desc: "The light at the Civil Lines crossing is dead — people cross in the dark every morning.",
+        lat: 21.155, lng: 79.079, area: "Civil Lines", type: "Broken Streetlight",
         severity: "high", upvotes: 6, firstDays: 4, lastDays: 0.6, imgFile: "light-out.svg",
         reporter: "usr_voter_35", safetyRisk: 8, locationImportance: 8, confidence: 0.86,
         historyNote: { verified: "Verified — light confirmed out", assigned: "Assigned to Electrical", in_progress: "Crew dispatched this morning" },
       },
       {
         id: "iss_tree_lakeside", cat: 6, status: "in_progress",
-        title: "Broken branch blocking Lakeside path",
-        desc: "A large branch came down across the walking path by the lake — joggers are detouring onto the road.",
-        lat: 40.7218, lng: -74.0032, area: "Lakeside", type: "Fallen Tree",
+        title: "Broken branch blocking Ambazari path",
+        desc: "A large branch came down across the walking path by Ambazari Lake — joggers are detouring onto the road.",
+        lat: 21.1291, lng: 79.046, area: "Ambazari", type: "Fallen Tree",
         severity: "medium", upvotes: 4, firstDays: 3, lastDays: 0.3, imgFile: "branches.svg",
         reporter: "usr_voter_41", safetyRisk: 0, locationImportance: 3, confidence: 0.9,
         historyNote: { verified: "Verified on site", assigned: "Assigned to Municipal", in_progress: "Crew removing the branch" },
       },
       {
         id: "iss_light_lakeside", cat: 4, status: "reported",
-        title: "Two streetlights out on Lakeside Dr",
-        desc: "The stretch near the boat ramp has been pitch black for a week.",
-        lat: 40.7215, lng: -74.0025, area: "Lakeside", type: "Broken Streetlight",
+        title: "Streetlights out near Bajaj Nagar",
+        desc: "The stretch near Bajaj Nagar has been pitch black for a week.",
+        lat: 21.1288, lng: 79.0574, area: "Ambazari", type: "Broken Streetlight",
         severity: "medium", upvotes: 1, firstDays: 0.4, lastDays: 0.4, imgFile: "light-out.svg",
         reporter: "usr_voter_47", safetyRisk: 4, locationImportance: 0, confidence: 0.84,
         historyNote: {},
       },
       {
         id: "iss_pothole_elm", cat: 1, status: "reported",
-        title: "New pothole opening on Elm Ave",
-        desc: "A new pothole is opening up on Elm Ave near the corner — still shallow but growing.",
-        lat: 40.7145, lng: -74.007, area: "Riverside", type: "Pothole",
+        title: "New pothole opening on Katol Rd",
+        desc: "A new pothole is opening up on Katol Rd — still shallow but growing.",
+        lat: 21.1405, lng: 79.0619, area: "Dharampeth", type: "Pothole",
         severity: "low", upvotes: 2, firstDays: 0.3, lastDays: 0.3, imgFile: "pothole-elm.svg",
         reporter: "usr_voter_51", safetyRisk: 0, locationImportance: 0, confidence: 0.81,
         historyNote: {},
@@ -823,7 +720,7 @@ function seed(db: Database.Database): void {
     .prepare("SELECT latitude, longitude FROM issue_reports WHERE issue_id = 'iss_oak_pothole'")
     .all() as Array<{ latitude: number; longitude: number }>;
   for (const r of rows) {
-    const d = haversineMeters(40.7135, -74.0032, r.latitude, r.longitude);
+    const d = haversineMeters(21.1413, 79.12673, r.latitude, r.longitude);
     if (d > 200) console.warn(`seed: pothole report ${d.toFixed(0)}m from anchor (expected <200m)`);
   }
 }

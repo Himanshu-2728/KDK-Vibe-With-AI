@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
+import { api } from "./api";
 import {
   clearSavedLocation,
+  nearPresetLabel,
   nearestArea,
   requestLocation,
   saveLocation,
@@ -28,11 +30,24 @@ export function useLocationSpot() {
     const res = await requestLocation();
     if (res.ok) {
       const { preset, distanceM } = nearestArea(res.lat, res.lng);
-      const next: LocatedAt = {
-        lat: res.lat,
-        lng: res.lng,
-        label: distanceM < 120 ? preset.label : `near ${preset.label.split(",")[0]}, ${preset.label.split(",")[1]?.trim()}`,
-      };
+      // Prefer the real place name from the map API (reverse geocoding). If the
+      // lookup fails we fall back to the closest demo preset, with a label that
+      // never contains a stray "undefined".
+      let label: string | null = null;
+      let approximate = false;
+      try {
+        const geo = await api.get<{ ok: boolean; label: string | null }>(
+          `/api/geo/reverse?lat=${res.lat}&lng=${res.lng}`,
+        );
+        if (geo.ok && geo.label) label = geo.label;
+      } catch {
+        /* geocoder unreachable — fall back below */
+      }
+      if (!label) {
+        label = distanceM < 120 ? preset.label : nearPresetLabel(preset);
+        approximate = true; // guessed from the demo presets, not a real name
+      }
+      const next: LocatedAt = { lat: res.lat, lng: res.lng, label, approximate };
       saveLocation(next);
       setLocState(next);
       setStatus("idle");

@@ -43,8 +43,8 @@ export function NeighborhoodMap({ selected, onPick, extraPins = [] }: Props) {
       </g>
       {/* Neighborhood labels */}
       <g fill="var(--text-3)" fontSize="6.5" fontWeight="700" textAnchor="middle" opacity="0.9">
-        <text x="47" y="18">Riverside Park</text>
-        <text x="180" y="24">Lakeside</text>
+        <text x="47" y="18">Ambazari Lake</text>
+        <text x="180" y="24">Sitabuldi</text>
         <text x="112" y="212">city center ↓</text>
       </g>
 

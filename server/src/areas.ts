@@ -1,33 +1,34 @@
 /**
- * Demo-city geography, shared by the seed and the API.
+ * Demo-city geography (real Nagpur streets), shared by the seed and the API.
  *
- * `issues.area_name` stores SHORT neighborhood names ("Riverside") — these are
+ * `issues.area_name` stores SHORT neighborhood names ("Nandanvan") — these are
  * what area filters match against. The front-end map pickers use FULL preset
- * labels ("Oak St, Riverside"). These maps bridge the two so the admin heatmap
- * can group by short name yet render/click through with stable labels.
+ * labels ("Great Nag Rd, Nandanvan"). These maps bridge the two so the admin
+ * heatmap can group by short name yet render/click through with stable labels.
  */
 export const AREA_SHORT_BY_LABEL: Record<string, string> = {
-  "Oak St, Riverside": "Riverside",
-  "Elm Ave, Riverside": "Riverside",
-  "Maple Dr, Westbrook": "Westbrook",
-  "Highland Rd, Westbrook": "Westbrook",
-  "Riverside Bridge": "Riverside",
-  "Riverside Park": "Riverside",
-  "Mill Rd, Old Mill": "Old Mill",
-  "Foundry St, Old Mill": "Old Mill",
-  "Hillcrest Ave": "Hillcrest",
-  "Lakeside Dr": "Lakeside",
-  "Northgate Crossing": "Northgate",
+  "Great Nag Rd, Nandanvan": "Nandanvan",
+  "Katol Rd, Dharampeth": "Dharampeth",
+  "Ramdaspeth": "Ramdaspeth",
+  "Sitabuldi": "Sitabuldi",
+  "Gandhi Sagar Bridge": "Sitabuldi",
+  "Civil Lines Rd": "Civil Lines",
+  "Manewada Rd, Hanuman Nagar": "Manewada",
+  "Hanuman Nagar": "Manewada",
+  "Amravati Rd, Bajaj Nagar": "Ambazari",
+  "Ambazari Lake": "Ambazari",
+  "Subhash Nagar": "Ambazari",
 };
 
 /** Short area names actually used in the seed, in display order. */
 export const SEED_AREAS: string[] = [
-  "Riverside",
-  "Westbrook",
-  "Old Mill",
-  "Hillcrest",
-  "Lakeside",
-  "Northgate",
+  "Nandanvan",
+  "Dharampeth",
+  "Ramdaspeth",
+  "Sitabuldi",
+  "Civil Lines",
+  "Manewada",
+  "Ambazari",
 ];
 
 export function shortToLabel(short: string): string {

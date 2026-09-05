@@ -130,7 +130,7 @@ describe("feed", () => {
 
     const res = await request(app)
       .get("/api/feed")
-      .query({ sort: "nearby", lat: 40.7135, lng: -74.0032 });
+      .query({ sort: "nearby", lat: 21.1413, lng: 79.12673 });
     expect(res.status).toBe(200);
     expect(res.body.items[0]!.id).toBe("iss_oak_pothole");
     expect(res.body.items[0]!.distanceM).toBeLessThan(200);
@@ -188,9 +188,9 @@ describe("report flow", () => {
       .post("/api/reports")
       .set(auth(token))
       .field("description", "Broken streetlight flickering near the park")
-      .field("lat", "40.7100")
-      .field("lng", "-74.0050")
-      .field("locationName", "Central Park")
+      .field("lat", "21.1350")
+      .field("lng", "79.0700")
+      .field("locationName", "Ramdaspeth")
       .attach("photo", PHOTO, { filename: "photo.svg", contentType: "image/svg+xml" });
     expect(created.status).toBe(201);
     expect(created.body.reportId).toBeTruthy();
@@ -221,8 +221,8 @@ describe("report flow", () => {
       .post("/api/reports")
       .set(auth(token))
       .field("description", "test")
-      .field("lat", "40.7")
-      .field("lng", "-74.0");
+      .field("lat", "21.14")
+      .field("lng", "79.13");
     expect(noPhoto.status).toBe(400);
 
     const noLoc = await request(app)
@@ -241,9 +241,9 @@ describe("report flow", () => {
     const created = await request(app)
       .post("/api/reports")
       .set(auth(token))
-      .field("description", "Deep pothole on Oak St, getting worse")
-      .field("lat", "40.7135")
-      .field("lng", "-74.0032")
+      .field("description", "Deep pothole on Great Nag Rd, getting worse")
+      .field("lat", "21.1413")
+      .field("lng", "79.12673")
       .attach("photo", PHOTO, { filename: "photo.svg", contentType: "image/svg+xml" });
     expect(created.status).toBe(201);
     expect(created.body.duplicate.issueId).toBe("iss_oak_pothole");
@@ -265,9 +265,9 @@ describe("report flow", () => {
     const created2 = await request(app)
       .post("/api/reports")
       .set(auth(token))
-      .field("description", "Another pothole on Oak St")
-      .field("lat", "40.7136")
-      .field("lng", "-74.0033")
+      .field("description", "Another pothole on Great Nag Rd")
+      .field("lat", "21.1414")
+      .field("lng", "79.12683")
       .attach("photo", PHOTO, { filename: "photo.svg", contentType: "image/svg+xml" });
     await request(app)
       .post(`/api/reports/${created2.body.reportId}/finalize`)
@@ -284,8 +284,8 @@ describe("report flow", () => {
       .post("/api/reports")
       .set(auth(token))
       .field("description", "Weird damage on the sidewalk")
-      .field("lat", "40.7110")
-      .field("lng", "-74.0060")
+      .field("lat", "21.1360")
+      .field("lng", "79.0755")
       .attach("photo", PHOTO, { filename: "photo.svg", contentType: "image/svg+xml" });
     const finalize = await request(app)
       .post(`/api/reports/${created.body.reportId}/finalize`)
@@ -336,7 +336,7 @@ describe("admin workflow + role boundaries", () => {
 
   it("serves heatmap cells, per-issue points and area names in the summary", async () => {
     const login = await request(app).post("/api/auth/login").send({
-      email: "tom@city.gov",
+      email: "rahul@city.gov",
       password: "demo1234",
     });
     const res = await request(app).get("/api/admin/summary").set(auth(login.body.token as string));
@@ -346,12 +346,12 @@ describe("admin workflow + role boundaries", () => {
     expect(res.body.heatmap[0]).toMatchObject({ area: expect.any(String), unresolved: expect.any(Number) });
     expect(Array.isArray(res.body.heatPoints)).toBe(true);
     expect(res.body.heatPoints.length).toBeGreaterThanOrEqual(res.body.heatmap.length);
-    expect(res.body.areas).toContain("Oak St, Riverside");
+    expect(res.body.areas).toContain("Great Nag Rd, Nandanvan");
   });
 
   it("filters the admin queue by area", async () => {
     const login = await request(app).post("/api/auth/login").send({
-      email: "tom@city.gov",
+      email: "rahul@city.gov",
       password: "demo1234",
     });
     const all = await request(app).get("/api/admin/issues").set(auth(login.body.token as string));
@@ -360,16 +360,16 @@ describe("admin workflow + role boundaries", () => {
     // Both the short name and the full preset label work as filters.
     const res = await request(app)
       .get("/api/admin/issues")
-      .query({ area: "Riverside" })
+      .query({ area: "Nandanvan" })
       .set(auth(login.body.token as string));
     expect(res.status).toBe(200);
     expect(res.body.total).toBeGreaterThan(0);
     expect(res.body.total).toBeLessThan(all.body.total);
-    for (const i of res.body.items) expect(i.area_name).toBe("Oak St, Riverside");
+    for (const i of res.body.items) expect(i.area_name).toBe("Great Nag Rd, Nandanvan");
 
     const byFull = await request(app)
       .get("/api/admin/issues")
-      .query({ area: "Oak St, Riverside" })
+      .query({ area: "Great Nag Rd, Nandanvan" })
       .set(auth(login.body.token as string));
     expect(byFull.status).toBe(200);
     expect(byFull.body.total).toBe(res.body.total);
@@ -377,7 +377,7 @@ describe("admin workflow + role boundaries", () => {
 
   it("allows the authority role to verify, assign, resolve and get confirmed", async () => {
     const login = await request(app).post("/api/auth/login").send({
-      email: "tom@city.gov",
+      email: "rahul@city.gov",
       password: "demo1234",
     });
     expect(login.status).toBe(200);
@@ -419,9 +419,9 @@ describe("admin workflow + role boundaries", () => {
       .attach("afterPhoto", PHOTO, { filename: "after.svg", contentType: "image/svg+xml" });
     expect(resolve.status).toBe(200);
 
-    // The original reporter (Jordan, seeded) is notified; confirm as reporter.
+    // The original reporter (Arjun, seeded) is notified; confirm as reporter.
     const jordan = await request(app).post("/api/auth/login").send({
-      email: "jordan@example.com",
+      email: "arjun@example.com",
       password: "demo1234",
     });
     const confirm = await request(app)
@@ -448,13 +448,13 @@ describe("admin workflow + role boundaries", () => {
 
 describe("notifications + profile", () => {
   it("creates notifications on status changes and lists them", async () => {
-    // Sam reported the railing issue, so Sam is the one notified on verify.
+    // Sahil reported the railing issue, so Sahil is the one notified on verify.
     const sam = await request(app).post("/api/auth/login").send({
-      email: "sam@example.com",
+      email: "sahil@example.com",
       password: "demo1234",
     });
     const admin = await request(app).post("/api/auth/login").send({
-      email: "tom@city.gov",
+      email: "rahul@city.gov",
       password: "demo1234",
     });
 
@@ -492,7 +492,7 @@ describe("nearby endpoint", () => {
   it("returns issues within the radius with distances", async () => {
     const res = await request(app)
       .get("/api/issues/nearby")
-      .query({ lat: 40.7135, lng: -74.0032, radius: 300 });
+      .query({ lat: 21.1413, lng: 79.12673, radius: 300 });
     expect(res.status).toBe(200);
     expect(res.body.items[0]!.issueId).toBe("iss_oak_pothole");
     expect(res.body.items[0]!.distanceM).toBeLessThan(50);

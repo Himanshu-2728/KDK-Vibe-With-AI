@@ -219,7 +219,7 @@ async function main() {
     [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Continue"))?.click();
   });
 
-  // Location step — open the pin-map picker and choose Oak St (pothole turf).
+  // Location step — open the pin-map picker and choose Great Nag Rd (pothole turf).
   await page.waitForSelector("button", { timeout: 10000 });
   await page.evaluate(() => {
     const open = [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Open the map"));
@@ -228,11 +228,11 @@ async function main() {
   await new Promise((r) => setTimeout(r, 500));
   check("pin-map picker opens", !!(await page.$("svg[aria-label*='map']")) || !!(await page.$eval("body", (b) => b.innerText.includes("Where are you?"))));
   await page.evaluate(() => {
-    const btn = [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Oak St"));
+    const btn = [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Great Nag Rd"));
     if (btn) btn.click();
   });
   await new Promise((r) => setTimeout(r, 500));
-  const locText = await page.evaluate(() => document.body.innerText.includes("Oak St, Riverside"));
+  const locText = await page.evaluate(() => document.body.innerText.includes("Great Nag Rd, Nandanvan"));
   check("pin picked shows in location card", locText);
   await page.evaluate(() => {
     [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Continue"))?.click();
@@ -243,7 +243,7 @@ async function main() {
     () => document.body.innerText.includes("What's happening"),
     { timeout: 10000 },
   );
-  await page.type("textarea", "Deep pothole on Oak St, cars are swerving around it");
+  await page.type("textarea", "Deep pothole on Great Nag Rd, cars are swerving around it");
   await page.evaluate(() => {
     [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Submit report"))?.click();
   });
@@ -282,7 +282,7 @@ async function main() {
   }
 
   console.log("Authority flow (tom):");
-  const adminToken = await loginToken("tom@city.gov");
+  const adminToken = await loginToken("rahul@city.gov");
   await page.evaluateOnNewDocument((t) => localStorage.setItem("civicpulse_token", t), adminToken);
   await page.goto(`${WEB}/admin`, { waitUntil: "networkidle0" });
   const statCards = await page.$$eval(".stat-card", (els) => els.length);
@@ -304,7 +304,7 @@ async function main() {
     if (!svg) return null;
     return [...svg.querySelectorAll("g")].find((el) => {
       const texts = [...el.querySelectorAll("text")].map((t) => t.textContent).join(" ");
-      return /(Riverside|Old Mill|Westbrook|Lakeside|Northgate|Hillcrest)/.test(texts) && el.querySelectorAll("circle").length >= 2;
+      return /(Nandanvan|Dharampeth|Ramdaspeth|Sitabuldi|Civil Lines|Manewada|Ambazari)/.test(texts) && el.querySelectorAll("circle").length >= 2;
     }) ?? null;
   });
   const cluster = clusterSel.asElement();
