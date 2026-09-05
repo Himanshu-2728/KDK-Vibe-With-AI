@@ -15,7 +15,14 @@ import adminRoutes from "./routes/admin.js";
 export function createApp(): express.Express {
   const app = express();
 
-  app.use(cors());
+  const corsOrigin = process.env.CORS_ORIGIN;
+  app.use(
+    cors(
+      corsOrigin
+        ? { origin: corsOrigin.split(",").map((o) => o.trim()), credentials: true }
+        : { origin: true, credentials: true },
+    ),
+  );
   app.use(express.json({ limit: "1mb" }));
   app.use("/media", express.static(path.join(config.mediaDir)));
 
