@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://https://civicpulse-api-jg1m.onrender.com.com/api/:path*"
+      "destination": "https://https://civicpulse-api-jg1m.onrender.com/api/:path*"
     },
     {
       "source": "/media/:path*",
-      "destination": "https://https://civicpulse-api-jg1m.onrender.com.com/media/:path*"
+      "destination": "https://https://civicpulse-api-jg1m.onrender.com/media/:path*"
     },
     {
       "source": "/((?!api/|media/).*)",
