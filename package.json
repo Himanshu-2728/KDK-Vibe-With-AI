@@ -1,0 +1,22 @@
+{
+  "name": "civicpulse",
+  "private": true,
+  "version": "0.1.0",
+  "description": "CivicPulse — your city's issues, surfaced by the people who live there.",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev -w server\" \"npm run dev -w web\"",
+    "dev:server": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web",
+    "test": "npm run test -w server",
+    "smoke": "node web/scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
